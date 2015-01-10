@@ -47,6 +47,8 @@ public:
 	float rotationSensitivity;
 	float zoomSensitivity;
 
+	RoadGraph roads;
+
 	VBORenderManager vboRenderManager;
 	GLWidgetSimpleShadow shadow;
 
