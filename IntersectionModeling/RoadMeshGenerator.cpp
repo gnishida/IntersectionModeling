@@ -17,6 +17,8 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 	// 2 Polylines Circle+Poly Intersection
 	// 3 Polylines Circle+Complex --> GOOD
 
+	const float deltaL = 5.0f;
+
 	//////////////////////////////////////////
 	// TYPE=1/2/3 POLYLINES 
 	if(renderRoadType==1||renderRoadType==2||renderRoadType==3){
@@ -246,6 +248,7 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 
 				// 2.2.2 Create intersection geometry of the given edges
 				std::vector<QVector3D> interPoints;
+				std::vector<QVector3D> stopPoints;
 				//printf("c\n");
 				for(int eN=0;eN<edgeAngleOut.size();eN++){
 					//printf("** eN %d\n",eN);
@@ -318,24 +321,31 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 					intPoint2.setZ(roads.graph[*vi]->pt3D.z() + zOff);//deltaZ+zOff);
 					intPoint1.setZ(roads.graph[*vi]->pt3D.z() + zOff);//deltaZ+zOff);
 					
+
 					interPoints.push_back(intPoint1);
-					// EDIT: to make the stop line perpendicular to the road direction
-					if (QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir) >= 0) {
-						intPoint1 -= ed1Dir * QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir);
-						interPoints.push_back(intPoint1);
-					} else {
-						intPoint2 += ed1Dir * QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir);
-						interPoints.push_back(intPoint2);
-					}
+					intPoint1 -= ed1Dir * deltaL;
+					intPoint2 -= ed1Dir * deltaL;
+					interPoints.push_back(intPoint1);
 					interPoints.push_back(intPoint2);
 
+					// intPoint1、intPoint2を、道路の方向に直行するよう、位置をそろえる
+					if (QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir) >= 0) {
+						intPoint1 -= ed1Dir * QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir);
+					} else {
+						intPoint2 += ed1Dir * QVector3D::dotProduct(intPoint1 - intPoint2, ed1Dir);
+					}
+
+					stopPoints.push_back(intPoint1);
+					stopPoints.push_back(intPoint2);
+
 					if (outDegree >= 3) {
-						// pedX
+						// 横断歩道
 						interPedX.push_back(Vertex(intPoint1,QVector3D(0-0.07f,0,0)));
 						interPedX.push_back(Vertex(intPoint2,QVector3D(ed1W/7.5f+0.07f,0,0)));
 						interPedX.push_back(Vertex(intPoint2-ed1Dir*3.5f,QVector3D(ed1W/7.5f+0.07f,1.0f,0)));
 						interPedX.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0.0f-0.07f,1.0f,0)));
-						// Line in right lines
+
+						// 停止線
 						QVector3D midPoint=(intPoint2+intPoint1)/2.0f+0.2f*ed1Per;
 					
 						interPedXLineR.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0,0.0f,0)));
@@ -345,8 +355,25 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 					}
 				}
 
-				if(interPoints.size()>2) {
-					rendManager.addStaticGeometry2("3d_roads_interCom",interPoints,0.0f,false,"../data/textures/roads/road_0lines.jpg",GL_QUADS,2,QVector3D(1.0f/7.5f,1.0f/7.5f,1),QColor());//0.0f (moved before)
+				// interPointsに基づいて、交差点のポリゴンを生成する
+				std::vector<QVector3D> curvedInterPoints;
+				for (int pi = 0; pi < interPoints.size() / 3; ++pi) {
+					int next = (pi * 3 + 1) % interPoints.size();
+					int prev = (pi * 3 - 1 + interPoints.size()) % interPoints.size();
+					int nextnext = (pi * 3 + 2) % interPoints.size();
+
+					std::vector<QVector3D> curvePoints = generateCurvePoints(interPoints[pi * 3], interPoints[prev], interPoints[next]);
+					curvedInterPoints.insert(curvedInterPoints.end(), curvePoints.begin(), curvePoints.end());
+					if ((interPoints[next] - stopPoints[pi * 2]).lengthSquared() > 0.1f) {
+						curvedInterPoints.push_back(stopPoints[pi * 2]);
+					}
+					if ((interPoints[nextnext] - stopPoints[pi * 2 + 1]).lengthSquared() > 0.1f) {
+						curvedInterPoints.push_back(stopPoints[pi * 2 + 1]);
+					}
+				}
+								
+				if (curvedInterPoints.size() > 2) {
+					rendManager.addStaticGeometry2("3d_roads_interCom",curvedInterPoints,0.0f,false,"../data/textures/roads/road_0lines.jpg",GL_QUADS,2,QVector3D(1.0f/7.5f,1.0f/7.5f,1),QColor());//0.0f (moved before)
 					//rendManager.addStaticGeometry2("3d_roads_interCom", interPoints, 0.0f, false, "", GL_QUADS, 1|mode_Lighting,QVector3D(), QColor(0, 0, 255));//0.0f (moved before)
 				}
 			}
@@ -356,4 +383,32 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 		rendManager.addStaticGeometry("3d_roads_interCom",interPedX,"../data/textures/roads/road_pedX.jpg",GL_QUADS,2);
 		rendManager.addStaticGeometry("3d_roads_interCom",interPedXLineR,"../data/textures/roads/road_pedXLineR.jpg",GL_QUADS,2);
 	}
-}//
+}
+
+std::vector<QVector3D> RoadMeshGenerator::generateCurvePoints(const QVector3D& intPoint, const QVector3D& p1, const QVector3D& p2) {
+	std::vector<QVector3D> points;
+
+	QVector3D d1 = intPoint - p1;
+	QVector3D per1 = QVector3D(-d1.y(), d1.x(), 0);
+	QVector3D d2 = p2 - intPoint;
+	QVector3D per2 = QVector3D(-d2.y(), d2.x(), 0);
+
+	float tab, tcd;
+	QVector3D center;
+	if (!Util::segmentSegmentIntersectXY3D(p1, p1 + per1 * 100, p2, p2 + per2 * 100, &tab, &tcd, false, center)) return points;
+
+	QVector2D v1(p1 - center);
+	QVector2D v2(p2 - center);
+	float r = v1.length();
+	float theta1 = atan2f(v1.y(), v1.x());
+	float theta2 = atan2f(v2.y(), v2.x());
+	if (theta2 < theta1) theta2 += 2 * M_PI;
+
+	points.push_back(p1);
+	for (float theta = theta1 + 0.2f; theta < theta2; theta += 0.2f) {
+		points.push_back(center + QVector3D(cosf(theta) * r, sinf(theta) * r, 0));
+	}
+	points.push_back(p2);
+
+	return points;
+}
