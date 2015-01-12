@@ -13,7 +13,6 @@
 #include "VBOBuilding.h"
 #include "RoadGraph.h"
 #include "BlockSet.h"
-#include "Zoning.h"
 
 class VBORenderManager;
 
@@ -22,10 +21,9 @@ class VBOPmBlocks
 public:
 
 	//Generate Blocks
-	static bool generateBlocks(Zoning& zones, RoadGraph &roadGraph, BlockSet &blocks);
+	static bool generateBlocks(RoadGraph &roadGraph, BlockSet &blocks);
 
 	static void buildEmbedding(RoadGraph &roads, std::vector<std::vector<RoadEdgeDesc> > &embedding);
-	static void assignZonesToBlocks(Zoning& zoning, BlockSet& blocks);
 };
 
 

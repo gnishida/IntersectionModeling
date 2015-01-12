@@ -6,7 +6,6 @@
 #pragma once
 
 #include "VBOBlock.h"
-#include "Zoning.h"
 
 class VBOPmBuildings{
 public:

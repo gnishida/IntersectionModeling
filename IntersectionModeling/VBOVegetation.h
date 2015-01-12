@@ -2,7 +2,6 @@
 
 #include "VBOBlock.h"
 #include "VBOModel_StreetElements.h"
-#include "Zoning.h"
 
 class VBORenderManager;
 
@@ -13,6 +12,6 @@ public:
 
 	~VBOVegetation(void);
 
-	static bool generateVegetation(VBORenderManager& rendManager, Zoning& zones, std::vector< Block > &blocks);
+	static bool generateVegetation(VBORenderManager& rendManager, std::vector< Block > &blocks);
 
 };

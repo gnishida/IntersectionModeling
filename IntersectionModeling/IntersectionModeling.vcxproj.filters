@@ -146,9 +146,6 @@
     <ClCompile Include="BlockSet.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Zoning.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VBOGeoBuilding.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -156,21 +153,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="HeatMapColorTable.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PMBuildingFactory.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PMBuildingHouse.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PMBuildingRB.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PMBuildingSchool.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="PMBuildingTower.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nvModel\nvModel.cpp">
@@ -315,9 +297,6 @@
     <ClInclude Include="BlockSet.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Zoning.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="VBOGeoBuilding.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -325,21 +304,6 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="HeatMapColorTable.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PMBuildingFactory.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PMBuildingHouse.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PMBuildingRB.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PMBuildingSchool.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="PMBuildingTower.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="nvModel\nvVector.h">

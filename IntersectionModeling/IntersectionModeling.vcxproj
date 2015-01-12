@@ -163,11 +163,6 @@
     <ClCompile Include="nvModel\nvModel.cpp" />
     <ClCompile Include="nvModel\nvModelObj.cpp" />
     <ClCompile Include="nvModel\nvModelQuery.cpp" />
-    <ClCompile Include="PMBuildingFactory.cpp" />
-    <ClCompile Include="PMBuildingHouse.cpp" />
-    <ClCompile Include="PMBuildingRB.cpp" />
-    <ClCompile Include="PMBuildingSchool.cpp" />
-    <ClCompile Include="PMBuildingTower.cpp" />
     <ClCompile Include="Polygon2D.cpp" />
     <ClCompile Include="Polygon3D.cpp" />
     <ClCompile Include="Polyline2D.cpp" />
@@ -192,7 +187,6 @@
     <ClCompile Include="VBOUtil.cpp" />
     <ClCompile Include="VBOVegetation.cpp" />
     <ClCompile Include="ZoneType.cpp" />
-    <ClCompile Include="Zoning.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.h">
@@ -257,11 +251,6 @@
     <ClInclude Include="nvModel\nvModel.h" />
     <ClInclude Include="nvModel\nvQuaternion.h" />
     <ClInclude Include="nvModel\nvVector.h" />
-    <ClInclude Include="PMBuildingFactory.h" />
-    <ClInclude Include="PMBuildingHouse.h" />
-    <ClInclude Include="PMBuildingRB.h" />
-    <ClInclude Include="PMBuildingSchool.h" />
-    <ClInclude Include="PMBuildingTower.h" />
     <ClInclude Include="Polygon2D.h" />
     <ClInclude Include="Polygon3D.h" />
     <ClInclude Include="Polyline2D.h" />
@@ -287,7 +276,6 @@
     <ClInclude Include="VBOUtil.h" />
     <ClInclude Include="VBOVegetation.h" />
     <ClInclude Include="ZoneType.h" />
-    <ClInclude Include="Zoning.h" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MainWindow.qrc">

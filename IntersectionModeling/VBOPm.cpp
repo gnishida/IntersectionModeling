@@ -19,11 +19,6 @@
 #include "Polygon3D.h"
 #include "Util.h"
 #include "HeatMapColorTable.h"
-#include "PMBuildingHouse.h"
-#include "PMBuildingTower.h"
-#include "PMBuildingFactory.h"
-#include "PMBuildingRB.h"
-#include "PMBuildingSchool.h"
 
 // LC
 bool VBOPm::initializedLC=false;
@@ -64,13 +59,13 @@ void VBOPm::initLC(){
 /**
  * 道路網から、ブロック情報を抽出する。
  */
-bool VBOPm::generateBlocks(VBORenderManager& rendManager,RoadGraph &roadGraph, BlockSet& blocks, Zoning& zones){
+bool VBOPm::generateBlocks(VBORenderManager& rendManager,RoadGraph &roadGraph, BlockSet& blocks) {
 	// INIT
 	if(initializedLC==false){
 		initLC();//init LC textures
 	}
 
-	if (!VBOPmBlocks::generateBlocks(zones, roadGraph,blocks)) {
+	if (!VBOPmBlocks::generateBlocks(roadGraph,blocks)) {
 		printf("ERROR: generateBlocks\n");
 		return false;
 	}
@@ -208,9 +203,10 @@ void VBOPm::generateParcelModels(VBORenderManager& rendManager, BlockSet& blocks
 	}
 }
 
-bool VBOPm::generateBuildings(VBORenderManager& rendManager, BlockSet& blocks, Zoning& zones) {
+bool VBOPm::generateBuildings(VBORenderManager& rendManager, BlockSet& blocks) {
 	rendManager.removeStaticGeometry("3d_building");
 		
+	/*
 	Block::parcelGraphVertexIter vi, viEnd;
 	for (int bN = 0; bN < blocks.size(); bN++) {
 		if (blocks[bN].zone.type() == ZoneType::TYPE_PARK) continue;//skip those with parks
@@ -242,13 +238,14 @@ bool VBOPm::generateBuildings(VBORenderManager& rendManager, BlockSet& blocks, Z
 			//VBOGeoBuilding::generateBuilding(rendManager,blocks[bN].myParcels[*vi].myBuilding, building_type);				
 		}
 	}
+	*/
 	printf("Building generation is done.\n");
 
 	return true;
 }
 
-bool VBOPm::generateVegetation(VBORenderManager& rendManager, BlockSet& blocks, Zoning& zones) {
-	VBOVegetation::generateVegetation(rendManager, zones, blocks.blocks);
+bool VBOPm::generateVegetation(VBORenderManager& rendManager, BlockSet& blocks) {
+	VBOVegetation::generateVegetation(rendManager, blocks.blocks);
 
 	return true;
 }
