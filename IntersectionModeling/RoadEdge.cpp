@@ -35,11 +35,11 @@ float RoadEdge::getWidth(float widthPerLane) {
 int RoadEdge::getWidthUnit() {
 	switch (type) {
 	case TYPE_HIGHWAY:
-		return 3 * (oneWay ? 1 : 2); //* lanes;
+		return lanes * (oneWay ? 1 : 2); //* lanes;
 	case TYPE_AVENUE:
-		return 2 * (oneWay ? 1 : 2); //* lanes;
+		return lanes * (oneWay ? 1 : 2); //* lanes;
 	case TYPE_STREET:
-		return 1 * (oneWay ? 1 : 2); //* lanes;
+		return lanes * (oneWay ? 1 : 2); //* lanes;
 	default:
 		return 0.0f;
 	}

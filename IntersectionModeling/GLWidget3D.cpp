@@ -25,7 +25,7 @@ GLWidget3D::GLWidget3D(MainWindow* mainWin) : QGLWidget(QGLFormat(QGL::SampleBuf
 	keyMPressed=false;
 
 	camera2D.setRotation(0, 0, 0);
-	camera2D.setTranslation(0, 0, 6000);
+	camera2D.setTranslation(0, 0, 1000);
 }
 
 QSize GLWidget3D::minimumSizeHint() const {
@@ -162,7 +162,8 @@ void GLWidget3D::drawScene(int drawMode) {
 	vboRenderManager.renderStaticGeometry("3d_sidewalk");
 	vboRenderManager.renderStaticGeometry("3d_parcel");
 
-	vboRenderManager.renderStaticGeometry("3d_roads");			
+	vboRenderManager.renderStaticGeometry("3d_roads");
+	vboRenderManager.renderStaticGeometry("3d_roads_side");
 	vboRenderManager.renderStaticGeometry("3d_roads_inter");
 	vboRenderManager.renderStaticGeometry("3d_roads_interCom");
 
