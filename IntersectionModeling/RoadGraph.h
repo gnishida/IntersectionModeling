@@ -44,9 +44,6 @@ public:
 
 	void clear();
 	void adaptToTerrain(VBORenderManager* vboRenderManager);
-
-public:
-	void updateRoadGraph(VBORenderManager& renderManager);
 };
 
 typedef boost::shared_ptr<RoadGraph> RoadGraphPtr;

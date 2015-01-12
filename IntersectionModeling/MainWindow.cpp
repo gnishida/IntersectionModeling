@@ -33,7 +33,7 @@ void MainWindow::onOpen() {
 	GraphUtil::loadRoads(glWidget->roads, filename);
 
 	glWidget->roads.adaptToTerrain(&glWidget->vboRenderManager);
-	glWidget->roads.updateRoadGraph(glWidget->vboRenderManager);
+	glWidget->roads.generateMesh(glWidget->vboRenderManager);
 
 	glWidget->shadow.makeShadowMap(glWidget);
 
