@@ -220,16 +220,10 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 		for (boost::tie(vi, vend) = boost::vertices(graph); vi != vend; ++vi) {
 			if (!graph[*vi]->valid) continue;
 
-			int outDegree=0;//boost::out_degree(*vi,roadGraph.graph);
-			RoadOutEdgeIter oei, oeend;
-			for (boost::tie(oei, oeend) = boost::out_edges(*vi, graph); oei != oeend; ++oei) {
-				if (!graph[*oei]->valid) continue;
-				outDegree++;
-			}
+			int outDegree = GraphUtil::getDegree(*this, *vi);
 
 			if (outDegree == 0) {
 				continue;
-
 			} else if (outDegree ==1) { // デッドエンド
 				// get the largest width of the outing edges
 				float max_r = 0;
@@ -272,22 +266,25 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 				////////////////////////
 				// 2.2 FOUR OR MORE--> COMPLEX INTERSECTION
 
-				//printf("a\n");
 				////////////
 				// 2.2.1 For each vertex find edges and short by angle
-				QVector2D p0,p1;
 				std::vector<std::pair<std::pair<QVector3D,QVector2D>,float>> edgeAngleOut;
-				int numOutEdges=0;
 				RoadOutEdgeIter Oei, Oei_end;
 				//printf("a1\n");
-				for(boost::tie(Oei, Oei_end) = boost::out_edges(*vi,graph); Oei != Oei_end; ++Oei){
+				for (boost::tie(Oei, Oei_end) = boost::out_edges(*vi, graph); Oei != Oei_end; ++Oei) {
 					if (!graph[*Oei]->valid) continue;
+
+					// GEN 1/12/2015
+					// to avoid some garbage in the boost graph
+					RoadVertexDesc tgt = boost::target(*Oei, graph);
+					if (*vi == 0 && *vi == tgt) continue;
+
 					// find first segment 
 					RoadEdgePtr edge = graph[*Oei];
 
 					Polyline2D polyline = GraphUtil::orderPolyLine(*this, *Oei, *vi);
-					p0 = polyline[0];
-					p1 = polyline[1];
+					QVector2D p0 = polyline[0];
+					QVector2D p1 = polyline[1];
 
 					QVector2D edgeDir=(p1-p0).normalized();// NOTE p1-p0
 					p1=p0+edgeDir*30.0f;//expand edge to make sure it is long enough
@@ -295,7 +292,6 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 					float angle=-atan2(edgeDir.y(),edgeDir.x());
 					float width=edge->getWidth();//*1.1f;//1.1 (since in render this is also applied)
 					edgeAngleOut.push_back(std::make_pair(std::make_pair(QVector3D(p0.x(),p0.y(),width),p1),angle));//z as width
-					numOutEdges++;
 				}
 				//printf("a2\n");
 				if(edgeAngleOut.size()>0){
@@ -387,18 +383,20 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 					}
 					interPoints.push_back(intPoint2);
 
-					// pedX
-					interPedX.push_back(Vertex(intPoint1,QVector3D(0-0.07f,0,0)));
-					interPedX.push_back(Vertex(intPoint2,QVector3D(ed1W/7.5f+0.07f,0,0)));
-					interPedX.push_back(Vertex(intPoint2-ed1Dir*3.5f,QVector3D(ed1W/7.5f+0.07f,1.0f,0)));
-					interPedX.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0.0f-0.07f,1.0f,0)));
-					// Line in right lines
-					QVector3D midPoint=(intPoint2+intPoint1)/2.0f+0.2f*ed1Per;
+					if (outDegree >= 3) {
+						// pedX
+						interPedX.push_back(Vertex(intPoint1,QVector3D(0-0.07f,0,0)));
+						interPedX.push_back(Vertex(intPoint2,QVector3D(ed1W/7.5f+0.07f,0,0)));
+						interPedX.push_back(Vertex(intPoint2-ed1Dir*3.5f,QVector3D(ed1W/7.5f+0.07f,1.0f,0)));
+						interPedX.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0.0f-0.07f,1.0f,0)));
+						// Line in right lines
+						QVector3D midPoint=(intPoint2+intPoint1)/2.0f+0.2f*ed1Per;
 					
-					interPedXLineR.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0,0.0f,0)));
-					interPedXLineR.push_back(Vertex(midPoint-ed1Dir*3.5f,QVector3D(1.0f,0.0f,0)));
-					interPedXLineR.push_back(Vertex(midPoint-ed1Dir*4.25f,QVector3D(1.0f,1.0f,0)));
-					interPedXLineR.push_back(Vertex(intPoint1-ed1Dir*4.25f,QVector3D(0.0f,1.0f,0)));
+						interPedXLineR.push_back(Vertex(intPoint1-ed1Dir*3.5f,QVector3D(0,0.0f,0)));
+						interPedXLineR.push_back(Vertex(midPoint-ed1Dir*3.5f,QVector3D(1.0f,0.0f,0)));
+						interPedXLineR.push_back(Vertex(midPoint-ed1Dir*4.25f,QVector3D(1.0f,1.0f,0)));
+						interPedXLineR.push_back(Vertex(intPoint1-ed1Dir*4.25f,QVector3D(0.0f,1.0f,0)));
+					}
 				}
 
 				if(interPoints.size()>2) {

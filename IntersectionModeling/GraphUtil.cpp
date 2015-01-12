@@ -330,7 +330,16 @@ int GraphUtil::getDegree(RoadGraph& roads, RoadVertexDesc v, bool onlyValidEdge)
 		int count = 0;
 		RoadOutEdgeIter ei, eend;
 		for (boost::tie(ei, eend) = boost::out_edges(v, roads.graph); ei != eend; ++ei) {
-			if (roads.graph[*ei]->valid) count++;
+			if (!roads.graph[*ei]->valid) continue;
+			
+			// GEN 1/12/2005
+			// Maybe this is because of some garbage in the graph, but there are sometimes a loop starting from vertex 0 to vertex 0
+			// even though the vertex 0 does not actuall form a loop.
+			// Thus, check this and if this is the case, skip this edge.
+			RoadVertexDesc tgt = boost::target(*ei, roads.graph);
+			if (v == 0 && v == tgt) continue;
+			
+			count++;
 		}
 		return count;
 	} else {
