@@ -152,9 +152,6 @@ void GLWidget3D::drawScene(int drawMode) {
 	if (drawMode == 0) {
 		glUniform1i(glGetUniformLocation(vboRenderManager.program,"shadowState"), 0);
 
-		vboRenderManager.renderStaticGeometry("sky");
-		vboRenderManager.vboWater.render(vboRenderManager);
-
 		glUniform1i(glGetUniformLocation(vboRenderManager.program,"shadowState"), 1);
 	} else {
 		glUniform1i(glGetUniformLocation(vboRenderManager.program,"shadowState"), 2);// SHADOW: From light

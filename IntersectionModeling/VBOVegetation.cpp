@@ -3,6 +3,7 @@
 #include "VBORenderManager.h"
 #include "BBox.h"
 #include "Util.h"
+#include <QTIme>
 
 VBOVegetation::VBOVegetation(void){
 }

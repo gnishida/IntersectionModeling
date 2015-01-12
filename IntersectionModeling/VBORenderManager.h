@@ -5,8 +5,6 @@
 #include "VBOUtil.h"
 #include "qmap.h"
 
-#include "VBOWater.h"
-#include "VBOSkyBox.h"
 #include "VBOTerrain.h"
 #include "VBOModel.h"
 #include "VBOLayer.h"
@@ -88,24 +86,6 @@ public:
 	QVector3D minPos;
 	QVector3D maxPos;
 	float side;
-
-	// layer
-	VBOLayer vboStoreLayer;
-	VBOLayer vboSchoolLayer;
-	VBOLayer vboRestaurantLayer;
-	VBOLayer vboParkLayer;
-	VBOLayer vboAmusementLayer;
-	VBOLayer vboLibraryLayer;
-	VBOLayer vboNoiseLayer;
-	VBOLayer vboPollutionLayer;
-	VBOLayer vboStationLayer;
-
-	// sky
-	VBOSkyBox vboSkyBox;
-
-	/// water
-	VBOWater vboWater;
-	void renderWater();
 
 	// textures
 	QHash<QString,GLuint> nameToTexId;

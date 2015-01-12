@@ -77,16 +77,10 @@
     <ClCompile Include="VBOShader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="VBOSkyBox.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="VBOTerrain.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="VBOUtil.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="VBOWater.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="FLayer.cpp">
@@ -246,16 +240,10 @@
     <ClInclude Include="VBOShader.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="VBOSkyBox.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="VBOTerrain.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="VBOUtil.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="VBOWater.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="FLayer.h">

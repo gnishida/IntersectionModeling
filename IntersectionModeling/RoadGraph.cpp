@@ -61,7 +61,7 @@ void RoadGraph::adaptToTerrain(VBORenderManager* vboRenderManager) {
 }
 
 void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
-	const int renderRoadType=2;
+	const int renderRoadType=3;
 	float deltaZ=G::global().getFloat("3d_road_deltaZ");//avoid road intersect with terrain
 	// 0 No polylines No intersection
 	// 1 Polylines Circle Intersection --> GOOD
@@ -190,133 +190,6 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 		rendManager.addStaticGeometry("3d_roads",vertROAD[0],"../data/textures/roads/road_2lines.jpg",GL_QUADS,2);
 		rendManager.addStaticGeometry("3d_roads",vertROAD[1],"../data/textures/roads/road_4lines.jpg",GL_QUADS,2);
 	}
-
-	//////////////////////////////////////////
-	// TYPE=1 Circle Intersection
-
-	if(renderRoadType==1){
-		// INTERSECTIONS
-		std::vector<Vertex> intersectCirclesV;
-		RoadVertexIter vi, vend;
-		for (boost::tie(vi, vend) = boost::vertices(graph); vi != vend; ++vi) {
-			if (!graph[*vi]->valid) continue;
-
-			// get the largest width of the outing edges
-			float max_r = 0;
-			int max_roadType = 0;
-			float offset = 0.3f;
-			RoadOutEdgeIter oei, oeend;
-			int numO=0;
-			for (boost::tie(oei, oeend) = boost::out_edges(*vi, graph); oei != oeend; ++oei) {
-				if (!graph[*oei]->valid) continue;
-
-				float r = graph[*oei]->getWidth();
-				if (r > max_r) {
-					max_r = r;
-				}
-
-				if (graph[*oei]->type > max_roadType) {
-					max_roadType = graph[*oei]->type;
-				}
-				numO++;
-			}
-			QVector3D center=graph[*vi]->pt3D;
-			if(numO<=2)
-				center.setZ(deltaZ-0.1f);//below
-			else
-				center.setZ(deltaZ+0.1f);//above
-
-			float radi1 = max_r /2.0f;
-			if(numO==2)radi1*=1.10f;
-			if(numO>3)radi1*=1.2f;
-
-			const float numSides=20;
-			const float deltaAngle=( 1.0f / numSides ) * 3.14159f * 2.0f;
-			float angle=0.0f;
-			QVector3D nP,oP;
-			oP=QVector3D( radi1 * cos( angle ), radi1 * sin( angle ),0.0f );//init point
-			for(int i=0;i<numSides+1;i++){
-				angle=deltaAngle*i;
-				nP=QVector3D( radi1 * cos( angle ), radi1 * sin( angle ),0.0f );
-
-				intersectCirclesV.push_back(Vertex(center,center/7.5f));
-				intersectCirclesV.push_back(Vertex(center+oP,(center+oP)/7.5f));
-				intersectCirclesV.push_back(Vertex(center+nP,(center+nP)/7.5f));
-				oP=nP;
-			}
-
-
-		}//all vertex
-		rendManager.addStaticGeometry("3d_roads_inter",intersectCirclesV,"../data/textures/roads/road_0lines.jpg",GL_TRIANGLES,2|mode_AdaptTerrain);
-
-	}
-
-	//////////////////////////////////////////
-	// TYPE=3  Circle+Complex
-	if (renderRoadType == 2) {
-		// 2. INTERSECTIONS
-		std::vector<Vertex> intersectCirclesV;
-
-		RoadVertexIter vi, vend;
-		for (boost::tie(vi, vend) = boost::vertices(graph); vi != vend; ++vi) {
-			if (!graph[*vi]->valid) continue;
-
-			int outDegree=0;//boost::out_degree(*vi,roadGraph.graph);
-			RoadOutEdgeIter oei, oeend;
-			for (boost::tie(oei, oeend) = boost::out_edges(*vi, graph); oei != oeend; ++oei) {
-				if (!graph[*oei]->valid) continue;
-				outDegree++;
-			}
-			////////////////////////
-			// 2.1 JUST TWO OR LESS--> CIRCLE BELOW
-			if(outDegree<=3){//if(outDegree<=2){
-				// get the largest width of the outing edges
-				float max_r = 0;
-				int max_roadType = 0;
-				float offset = 0.3f;
-				RoadOutEdgeIter oei, oeend;
-				for (boost::tie(oei, oeend) = boost::out_edges(*vi, graph); oei != oeend; ++oei) {
-					if (!graph[*oei]->valid) continue;
-
-					float r = graph[*oei]->getWidth();
-					if (r > max_r) {
-						max_r = r;
-					}
-
-					if (graph[*oei]->type > max_roadType) {
-						max_roadType = graph[*oei]->type;
-					}
-				}
-				QVector3D center=graph[*vi]->pt3D;
-				if(outDegree<=2)
-					center.setZ(center.z() - 0.1f);//deltaZ-0.1f);//below
-				else
-					center.setZ(center.z() + 0.1f);//deltaZ+0.1f);//above
-
-				float radi1 = max_r /2.0f;
-				//if(outDegree==2)radi1*=1.10f;
-
-				const float numSides=20;
-				const float deltaAngle=( 1.0f / numSides ) * 3.14159f * 2.0f;
-				float angle=0.0f;
-				QVector3D nP,oP;
-				oP=QVector3D( radi1 * cos( angle ), radi1 * sin( angle ),0.0f );//init point
-				for(int i=0;i<numSides+1;i++){
-					angle=deltaAngle*i;
-					nP=QVector3D( radi1 * cos( angle ), radi1 * sin( angle ),0.0f );
-
-					intersectCirclesV.push_back(Vertex(center,center/7.5f));
-					intersectCirclesV.push_back(Vertex(center+oP,(center+oP)/7.5f));
-					intersectCirclesV.push_back(Vertex(center+nP,(center+nP)/7.5f));
-					oP=nP;
-				}
-
-			}
-		}//all vertex
-
-		rendManager.addStaticGeometry("3d_roads_inter",intersectCirclesV,"../data/textures/roads/road_0lines.jpg",GL_TRIANGLES,2);
-	}
-
 
 	//////////////////////////////////////////
 	// TYPE=3  Circle+Complex
@@ -543,14 +416,11 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 
 				}
 
-				if(interPoints.size()>2){
-						
-					{
-						for(int iP=0;iP<interPoints.size()-1;iP++){//remove duplicated
-							if((interPoints[iP]-interPoints[iP+1]).lengthSquared()<0.5f){
-								interPoints.erase(interPoints.begin()+iP);
-								iP--;
-							}
+				if(interPoints.size()>2) {
+					for(int iP=0;iP<interPoints.size()-1;iP++){//remove duplicated
+						if((interPoints[iP]-interPoints[iP+1]).lengthSquared()<0.5f){
+							interPoints.erase(interPoints.begin()+iP);
+							iP--;
 						}
 					}
 
@@ -563,6 +433,4 @@ void RoadGraph::updateRoadGraph(VBORenderManager& rendManager) {
 
 		rendManager.addStaticGeometry("3d_roads_inter",intersectCirclesV,"../data/textures/roads/road_0lines.jpg",GL_TRIANGLES,2);
 	}
-
-
 }//

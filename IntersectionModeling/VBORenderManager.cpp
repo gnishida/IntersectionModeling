@@ -5,7 +5,7 @@ using namespace boost::polygon::operators;
 
 VBORenderManager::VBORenderManager(){
 	editionMode=false;
-	side=4000.0f;//10000.0f;
+	side=2000.0f;
 	minPos=QVector3D (-side/2.0f,-side/2.0f,0);
 	maxPos=QVector3D (side/2.0f,side/2.0f,0);
 	//initializedStreetElements=false;
@@ -21,19 +21,6 @@ void VBORenderManager::init(){
 	glUseProgram(program);
 
 	vboTerrain.init(*this);
-	vboSkyBox.init(*this);
-
-	// initialize layer
-	vboStoreLayer.init(*this);
-	vboSchoolLayer.init(*this);
-	vboRestaurantLayer.init(*this);
-	vboParkLayer.init(*this);
-	vboAmusementLayer.init(*this);
-	vboLibraryLayer.init(*this);
-	vboNoiseLayer.init(*this);
-	vboPollutionLayer.init(*this);
-	vboStationLayer.init(*this);
-
 
 	nameToTexId[""]=0;
 
@@ -164,7 +151,6 @@ void VBORenderManager::changeTerrainDimensions(float terrainSide,int resolution)
 	vboTerrain.resolutionX=resolution;
 	vboTerrain.resolutionY=resolution;
 	vboTerrain.init(*this);
-	vboSkyBox.init(*this);
 }//
 
 ///////////////////////////////////////////////////////////////////

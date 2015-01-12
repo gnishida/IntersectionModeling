@@ -13,8 +13,8 @@
 		initialized=false;
 
 		/// resolution of vertices
-		resolutionX=200;
-		resolutionY=200;
+		resolutionX=20;
+		resolutionY=20;
 	}
 
 	VBOTerrain::~VBOTerrain() {

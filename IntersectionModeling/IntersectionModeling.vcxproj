@@ -188,11 +188,9 @@
     <ClCompile Include="VBOPmParcels.cpp" />
     <ClCompile Include="VBORenderManager.cpp" />
     <ClCompile Include="VBOShader.cpp" />
-    <ClCompile Include="VBOSkyBox.cpp" />
     <ClCompile Include="VBOTerrain.cpp" />
     <ClCompile Include="VBOUtil.cpp" />
     <ClCompile Include="VBOVegetation.cpp" />
-    <ClCompile Include="VBOWater.cpp" />
     <ClCompile Include="ZoneType.cpp" />
     <ClCompile Include="Zoning.cpp" />
   </ItemGroup>
@@ -285,11 +283,9 @@
     <ClInclude Include="VBOPmParcels.h" />
     <ClInclude Include="VBORenderManager.h" />
     <ClInclude Include="VBOShader.h" />
-    <ClInclude Include="VBOSkyBox.h" />
     <ClInclude Include="VBOTerrain.h" />
     <ClInclude Include="VBOUtil.h" />
     <ClInclude Include="VBOVegetation.h" />
-    <ClInclude Include="VBOWater.h" />
     <ClInclude Include="ZoneType.h" />
     <ClInclude Include="Zoning.h" />
   </ItemGroup>
