@@ -163,7 +163,6 @@ void GLWidget3D::drawScene(int drawMode) {
 	vboRenderManager.renderStaticGeometry("3d_parcel");
 
 	vboRenderManager.renderStaticGeometry("3d_roads");
-	vboRenderManager.renderStaticGeometry("3d_roads_side");
 	vboRenderManager.renderStaticGeometry("3d_roads_inter");
 	vboRenderManager.renderStaticGeometry("3d_roads_interCom");
 

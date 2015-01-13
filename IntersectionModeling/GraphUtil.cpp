@@ -806,6 +806,39 @@ Polyline2D GraphUtil::orderPolyLine(RoadGraph& roads, RoadEdgeDesc e, RoadVertex
 }
 
 /**
+ * Sort the points of the polyline of the edge such that the first point is the location of the src vertex.
+ * @angle		the angle from 0 in CCW order [rad]
+ */
+Polyline3D GraphUtil::orderPolyLine3D(RoadGraph& roads, RoadEdgeDesc e, RoadVertexDesc src, float angle) {
+	RoadVertexDesc tgt;
+
+	RoadVertexDesc s = boost::source(e, roads.graph);
+	RoadVertexDesc t = boost::target(e, roads.graph);
+
+	if (s == src) {
+		tgt = t;
+	} else {
+		tgt = s;
+	}
+
+	// If the order is opposite, reverse the order.
+	if ((roads.graph[src]->pt3D - roads.graph[e]->polyline3D[0]).lengthSquared() > (roads.graph[tgt]->pt3D - roads.graph[e]->polyline3D[0]).lengthSquared()) {
+		std::reverse(roads.graph[e]->polyline3D.begin(), roads.graph[e]->polyline3D.end());
+	}
+
+	// For self-loop edge
+	if (src == tgt) {
+		QVector3D dir = roads.graph[e]->polyline3D[1] - roads.graph[e]->polyline3D[0];
+		float a = atan2f(dir.y(), dir.x());
+		if (fabs(angle - a) > 0.1f) {
+			std::reverse(roads.graph[e]->polyline3D.begin(), roads.graph[e]->polyline3D.end());
+		}
+	}
+
+	return roads.graph[e]->polyline3D;
+}
+
+/**
  * Move the edge to the specified location.
  * src_posは、エッジeのsource頂点の移動先
  * tgt_posは、エッジeのtarget頂点の移動先
@@ -1294,6 +1327,36 @@ Polygon2D GraphUtil::hull(RoadGraph &roads) {
 	}
 
 	return ch.convexHull();
+}
+
+/**
+ * 交差点からthreshold範囲内にあるポリラインの頂点を削除する。
+ */
+void GraphUtil::modifyIntersections(RoadGraph& roads, float threshold) {
+	RoadEdgeIter ei, eend;
+	int count = 0;
+	for (boost::tie(ei, eend) = boost::edges(roads.graph); ei != eend; ++ei) {
+		printf("%d\n", count++);
+		if (!roads.graph[*ei]->valid) continue;
+
+		if (roads.graph[*ei]->polyline.length(1) < threshold) {
+			for (int i = 1; i < roads.graph[*ei]->polyline.size() - 1; ) {
+				if (roads.graph[*ei]->polyline.length(i) < threshold) {
+					roads.graph[*ei]->polyline.erase(roads.graph[*ei]->polyline.begin() + i);
+				}
+			}
+		}
+
+		std::reverse(roads.graph[*ei]->polyline.begin(), roads.graph[*ei]->polyline.end());
+
+		if (roads.graph[*ei]->polyline.length(1) < threshold) {
+			for (int i = 1; i < roads.graph[*ei]->polyline.size() - 1; ) {
+				if (roads.graph[*ei]->polyline.length(i) < threshold) {
+					roads.graph[*ei]->polyline.erase(roads.graph[*ei]->polyline.begin() + i);
+				}
+			}
+		}
+	}
 }
 
 /**

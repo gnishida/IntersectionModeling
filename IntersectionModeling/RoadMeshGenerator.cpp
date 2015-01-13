@@ -2,8 +2,8 @@
 #include "Util.h"
 #include "GraphUtil.h"
 
-bool compare2ndPartTuple2 (const std::pair<std::pair<QVector3D,QVector2D>,float> &i, const std::pair<std::pair<QVector3D,QVector2D>,float> &j) {
-	return (i.second<j.second);
+bool compare2ndPartTuple2 (const std::pair<float, RoadEdgeDesc> &i, const std::pair<float, RoadEdgeDesc> &j) {
+	return (i.first > j.first);
 }
 
 void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGraph& roads) {
@@ -11,17 +11,11 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 	rendManager.removeStaticGeometry("3d_roads_interCom");
 	rendManager.removeStaticGeometry("3d_roads_inter");
 
-	const int renderRoadType=3;
-	// 0 No polylines No intersection
-	// 1 Polylines Circle Intersection --> GOOD
-	// 2 Polylines Circle+Poly Intersection
-	// 3 Polylines Circle+Complex --> GOOD
-
-	const float deltaL = 5.0f;
+	const float deltaL = 1.0f;
 
 	//////////////////////////////////////////
-	// TYPE=1/2/3 POLYLINES 
-	if(renderRoadType==1||renderRoadType==2||renderRoadType==3){
+	// POLYLINES 
+	{
 		float const maxSegmentLeng=5.0f;//5.0f
 
 		RoadEdgeIter ei, eiEnd;
@@ -156,12 +150,12 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 		// add all geometry
 		rendManager.addStaticGeometry("3d_roads",vertROAD[0],"../data/textures/roads/road_2lines.jpg",GL_QUADS,2);
 		rendManager.addStaticGeometry("3d_roads",vertROAD[1],"../data/textures/roads/road_4lines.jpg",GL_QUADS,2);
-		rendManager.addStaticGeometry("3d_roads_side",vertSide,"",GL_QUADS, 1|mode_Lighting);
+		rendManager.addStaticGeometry("3d_roads",vertSide,"",GL_QUADS, 1|mode_Lighting);
 	}
 
 	//////////////////////////////////////////
-	// TYPE=3  Circle+Complex
-	if (renderRoadType == 3) {
+	// Circle+Complex
+	{
 		// 2. INTERSECTIONS
 		std::vector<Vertex> intersectCirclesV;
 		std::vector<Vertex> interPedX;
@@ -219,32 +213,40 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 
 				////////////
 				// 2.2.1 For each vertex find edges and sort them in clockwise order
-				std::vector<std::pair<std::pair<QVector3D,QVector2D>,float>> edgeAngleOut;
+				std::vector<std::pair<float, RoadEdgeDesc> > edgeAngleOut;
 				RoadOutEdgeIter Oei, Oei_end;
+				QMap<RoadEdgeDesc, bool> visited;
 				//printf("a1\n");
 				for (boost::tie(Oei, Oei_end) = boost::out_edges(*vi, roads.graph); Oei != Oei_end; ++Oei) {
 					if (!roads.graph[*Oei]->valid) continue;
+					if (visited[*Oei]) continue;
 
 					// GEN 1/12/2015
 					// to avoid some garbage in the boost graph
 					RoadVertexDesc tgt = boost::target(*Oei, roads.graph);
 					if (*vi == 0 && *vi == tgt) continue;
 
-					// find first segment 
-					RoadEdgePtr edge = roads.graph[*Oei];
-
 					Polyline2D polyline = GraphUtil::orderPolyLine(roads, *Oei, *vi);
 					QVector2D p0 = polyline[0];
 					QVector2D p1 = polyline[1];
 
 					QVector2D edgeDir=(p1-p0).normalized();// NOTE p1-p0
-					p1=p0+edgeDir*30.0f;//expand edge to make sure it is long enough
 
-					float angle=-atan2(edgeDir.y(),edgeDir.x());
-					float width=edge->getWidth();//*1.1f;//1.1 (since in render this is also applied)
-					edgeAngleOut.push_back(std::make_pair(std::make_pair(QVector3D(p0.x(),p0.y(),width),p1),angle));//z as width
+					float angle = atan2(edgeDir.y(),edgeDir.x());
+					edgeAngleOut.push_back(std::make_pair(angle, *Oei));//z as width
+
+					// For self-loop edge
+					if (tgt == *vi) {
+						p0 = polyline.back();
+						p1 = polyline[polyline.size() - 2];
+						edgeDir = (p1 - p0).normalized();
+						float angle = atan2(edgeDir.y(),edgeDir.x());
+						edgeAngleOut.push_back(std::make_pair(angle, *Oei));//z as width
+					}
+
+					visited[*Oei] = true;
 				}
-				std::sort( edgeAngleOut.begin(), edgeAngleOut.end(), compare2ndPartTuple2);
+				std::sort(edgeAngleOut.begin(), edgeAngleOut.end(), compare2ndPartTuple2);
 
 				// 2.2.2 Create intersection geometry of the given edges
 				std::vector<QVector3D> interPoints;
@@ -253,29 +255,28 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 				for(int eN=0;eN<edgeAngleOut.size();eN++){
 					//printf("** eN %d\n",eN);
 					// a) ED1: this edge
-					float ed1W = edgeAngleOut[eN].first.first.z();//use z as width
-					QVector3D ed1p0 = edgeAngleOut[eN].first.first;
-					ed1p0.setZ(0);
-					QVector3D ed1p1 = edgeAngleOut[eN].first.second.toVector3D();
+					float ed1W = roads.graph[edgeAngleOut[eN].second]->getWidth();
+					Polyline3D ed1poly = GraphUtil::orderPolyLine3D(roads, edgeAngleOut[eN].second, *vi, edgeAngleOut[eN].first);
+					QVector3D ed1p1 = ed1poly[1];
 					// compute right side
-					QVector3D ed1Dir = (ed1p0-ed1p1).normalized();//ends in 0
+					QVector3D ed1Dir = (roads.graph[*vi]->pt3D - ed1p1).normalized();//ends in 0
 					QVector3D ed1Per = (QVector3D::crossProduct(ed1Dir,QVector3D(0,0,1.0f)).normalized());//need normalized()?
-					QVector3D ed1p0R = ed1p0+ed1Per*ed1W/2.0f;
-					QVector3D ed1p1R = ed1p1+ed1Per*ed1W/2.0f;
+					QVector3D ed1p0R = roads.graph[*vi]->pt3D + ed1Per*ed1W/2.0f;
+					QVector3D ed1p1R = ed1p1 + ed1Per*ed1W/2.0f;
 					// compute left side
-					QVector3D ed1p0L = ed1p0-ed1Per*ed1W/2.0f;
-					QVector3D ed1p1L = ed1p1-ed1Per*ed1W/2.0f;
+					QVector3D ed1p0L = roads.graph[*vi]->pt3D - ed1Per*ed1W/2.0f;
+					QVector3D ed1p1L = ed1p1 - ed1Per*ed1W/2.0f;
 
 					// b) ED2: next edge
-					int lastEdge=eN-1;
-					if(lastEdge<0)lastEdge=edgeAngleOut.size()-1;
+					int lastEdge = eN-1;
+					if(lastEdge<0)lastEdge = edgeAngleOut.size()-1;
 					//printf("last eN %d\n",lastEdge);
-					float ed2WL = edgeAngleOut[lastEdge].first.first.z();//use z as width
-					QVector3D ed2p0L = edgeAngleOut[lastEdge].first.first;
-					ed2p0L.setZ(0);
-					QVector3D ed2p1L = edgeAngleOut[lastEdge].first.second.toVector3D();
+					float ed2WL = roads.graph[edgeAngleOut[lastEdge].second]->getWidth();
+					QVector3D ed2p0L = roads.graph[*vi]->pt3D;
+					Polyline3D ed2polyL = GraphUtil::orderPolyLine3D(roads, edgeAngleOut[lastEdge].second, *vi, edgeAngleOut[lastEdge].first);
+					QVector3D ed2p1L = ed2polyL[1];
 					// compute left side
-					QVector3D ed2DirL = (ed2p0L-ed2p1L).normalized();//ends in 0
+					QVector3D ed2DirL = (ed2p0L - ed2p1L).normalized();//ends in 0
 					QVector3D ed2PerL = (QVector3D::crossProduct(ed2DirL,QVector3D(0,0,1.0f)).normalized());//need normalized()?
 					ed2p0L-=ed2PerL*ed2WL/2.0f;
 					ed2p1L-=ed2PerL*ed2WL/2.0f;
@@ -283,12 +284,12 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 					// c) ED2: last edge
 					int nextEdge=(eN+1)%edgeAngleOut.size();
 
-					float ed2WR = edgeAngleOut[nextEdge].first.first.z();//use z as width
-					QVector3D ed2p0R = edgeAngleOut[nextEdge].first.first;
-					ed2p0R.setZ(0);
-					QVector3D ed2p1R = edgeAngleOut[nextEdge].first.second.toVector3D();
+					float ed2WR = roads.graph[edgeAngleOut[nextEdge].second]->getWidth();
+					QVector3D ed2p0R = roads.graph[*vi]->pt3D;
+					Polyline3D ed2polyR = GraphUtil::orderPolyLine3D(roads, edgeAngleOut[nextEdge].second, *vi, edgeAngleOut[nextEdge].first);
+					QVector3D ed2p1R = ed2polyR[1];
 					// compute left side
-					QVector3D ed2DirR = (ed2p0R-ed2p1R).normalized();//ends in 0
+					QVector3D ed2DirR = (ed2p0R - ed2p1R).normalized();//ends in 0
 					QVector3D ed2PerR = (QVector3D::crossProduct(ed2DirR,QVector3D(0,0,1.0f)).normalized());//need normalized()?
 					ed2p0R+=ed2PerR*ed2WR/2.0f;
 					ed2p1R+=ed2PerR*ed2WR/2.0f;
@@ -338,7 +339,8 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 					stopPoints.push_back(intPoint1);
 					stopPoints.push_back(intPoint2);
 
-					if (outDegree >= 3) {
+					// create crossing and stop line only if the degree >= 3 and the edge is not self-looping and the edge length is long enough
+					if (outDegree >= 3 && (ed1poly[0] - ed1poly.back()).length() > 10.0f && ed1poly.length() > 50.0f) {
 						// 横断歩道
 						interPedX.push_back(Vertex(intPoint1,QVector3D(0-0.07f,0,0)));
 						interPedX.push_back(Vertex(intPoint2,QVector3D(ed1W/7.5f+0.07f,0,0)));
@@ -374,7 +376,7 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 								
 				if (curvedInterPoints.size() > 2) {
 					rendManager.addStaticGeometry2("3d_roads_interCom",curvedInterPoints,0.0f,false,"../data/textures/roads/road_0lines.jpg",GL_QUADS,2,QVector3D(1.0f/7.5f,1.0f/7.5f,1),QColor());//0.0f (moved before)
-					//rendManager.addStaticGeometry2("3d_roads_interCom", interPoints, 0.0f, false, "", GL_QUADS, 1|mode_Lighting,QVector3D(), QColor(0, 0, 255));//0.0f (moved before)
+					//rendManager.addStaticGeometry2("3d_roads_interCom", curvedInterPoints, 0.0f, false, "", GL_QUADS, 1|mode_Lighting,QVector3D(), QColor(0, 0, 255));//0.0f (moved before)
 				}
 			}
 		}//all vertex

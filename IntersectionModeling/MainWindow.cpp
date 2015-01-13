@@ -32,6 +32,7 @@ void MainWindow::onOpen() {
 	glWidget->roads.clear();
 	GraphUtil::loadRoads(glWidget->roads, filename);
 
+	//GraphUtil::modifyIntersections(glWidget->roads, 20.0f);
 	glWidget->roads.adaptToTerrain(&glWidget->vboRenderManager);
 	glWidget->roads.generateMesh(glWidget->vboRenderManager);
 
