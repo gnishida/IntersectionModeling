@@ -388,6 +388,14 @@ void RoadMeshGenerator::generateRoadMesh(VBORenderManager& rendManager, RoadGrap
 std::vector<QVector3D> RoadMeshGenerator::generateCurvePoints(const QVector3D& intPoint, const QVector3D& p1, const QVector3D& p2) {
 	std::vector<QVector3D> points;
 
+	// もしco-linearなら、p1-intPoint-p2を返却する
+	if (fabs(QVector3D::dotProduct((p1 - intPoint).normalized(), (p2 - intPoint).normalized())) > 0.95f) {
+		points.push_back(p1);
+		points.push_back(intPoint);
+		points.push_back(p2);
+		return points;
+	}
+
 	QVector3D d1 = intPoint - p1;
 	QVector3D per1 = QVector3D(-d1.y(), d1.x(), 0);
 	QVector3D d2 = p2 - intPoint;
